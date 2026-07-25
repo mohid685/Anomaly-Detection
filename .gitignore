@@ -1,0 +1,6 @@
+# Datasets
+artifacts/metal_nut.tar.xz
+artifacts/screw.tar.xz
+
+# Or ignore the entire artifacts folder
+# artifacts/
