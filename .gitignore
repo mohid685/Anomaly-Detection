@@ -1,6 +1,9 @@
 # Datasets
 artifacts/metal_nut.tar.xz
 artifacts/screw.tar.xz
+artifacts/
+# or, if you only want to ignore the model:
+artifacts/memory_bank.pt
 
 dataset/metal_nut/
 dataset/screw/
