@@ -1,4 +1,5 @@
 import os
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -79,6 +80,8 @@ class MVTecTestDataset(Dataset):
             mask = Image.open(mask_path).convert("L")
             mask_t = self.mask_transform(mask)
         else:
-            mask_t = None  # good images have no defect mask
+            mask_t = torch.zeros(1, CENTER_CROP, CENTER_CROP)  # placeholder for good images
 
         return img_t, label, mask_t, defect_type, img_path
+
+    
