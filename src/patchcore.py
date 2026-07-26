@@ -33,7 +33,6 @@ class FeatureExtractor:
         x = x.to(DEVICE)
         _ = self.model(x)
 
-        # Resize all layer outputs to match the largest spatial size, then concat channel-wise
         layer_outputs = [self.features[l] for l in LAYERS]
         target_size = layer_outputs[0].shape[-2:]
         resized = [F.interpolate(f, size=target_size, mode="bilinear", align_corners=False)
@@ -53,20 +52,21 @@ def coreset_subsample(patch_features, ratio=CORESET_RATIO, seed=42):
     """
     Greedy k-center coreset selection to shrink the memory bank while
     preserving coverage of the feature space. Falls back to random
-    sampling of a candidate pool if the dataset is very large (for speed).
+    sampling of a candidate pool if the dataset is very large (for speed),
+    and applies the ratio relative to that pool (not the raw total) so
+    compression stays consistent regardless of dataset size.
     """
     n_total = patch_features.shape[0]
-    n_select = max(1, int(n_total * ratio))
-
     rng = np.random.default_rng(seed)
 
-    # For speed on large patch counts, subsample a candidate pool first
     if n_total > 20000:
         idx_pool = rng.choice(n_total, 20000, replace=False)
         pool = patch_features[idx_pool]
     else:
         idx_pool = np.arange(n_total)
         pool = patch_features
+
+    n_select = max(1, int(len(pool) * ratio))
 
     selected = [rng.integers(0, len(pool))]
     min_dists = np.linalg.norm(pool - pool[selected[0]], axis=1)
@@ -87,7 +87,7 @@ class PatchCore:
         self.extractor = FeatureExtractor()
         self.memory_bank = None
         self.knn = None
-        self.feature_map_hw = None  # (h, w) of the embedding grid
+        self.feature_map_hw = None
 
     def fit(self, train_loader):
         all_patches = []
@@ -107,16 +107,11 @@ class PatchCore:
         self.knn.fit(self.memory_bank)
 
     def score(self, x):
-        """
-        Returns:
-            image_score: float, higher = more anomalous
-            anomaly_map: (H, W) numpy array, patch-level anomaly scores
-        """
         embedding = self.extractor(x)
         patches, (b, h, w) = embedding_to_patches(embedding)
 
         distances, _ = self.knn.kneighbors(patches)
-        patch_scores = distances.mean(axis=1)  # average distance to k nearest neighbors
+        patch_scores = distances.mean(axis=1)
 
         anomaly_map = patch_scores.reshape(h, w)
         image_score = anomaly_map.max()

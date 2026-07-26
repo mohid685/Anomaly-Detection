@@ -48,10 +48,12 @@ class MVTecTestDataset(Dataset):
     """
     Loads all test images across every defect subfolder ('good' included).
     Returns image, binary label (0=good, 1=defect), mask, and defect type.
+    Good images get a zero-mask placeholder so the DataLoader can collate
+    batches without hitting a None type.
     """
 
     def __init__(self, test_dir, gt_dir):
-        self.samples = []  # (image_path, label, mask_path_or_None, defect_type)
+        self.samples = []
         self.transform = get_transform()
         self.mask_transform = get_mask_transform()
 
@@ -80,8 +82,6 @@ class MVTecTestDataset(Dataset):
             mask = Image.open(mask_path).convert("L")
             mask_t = self.mask_transform(mask)
         else:
-            mask_t = torch.zeros(1, CENTER_CROP, CENTER_CROP)  # placeholder for good images
+            mask_t = torch.zeros(1, CENTER_CROP, CENTER_CROP)
 
         return img_t, label, mask_t, defect_type, img_path
-
-    

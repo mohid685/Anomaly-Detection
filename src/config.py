@@ -17,7 +17,7 @@ CENTER_CROP = 224     # crop fed to backbone
 # PatchCore settings
 BACKBONE = "wide_resnet50_2"
 LAYERS = ["layer2", "layer3"]     # feature layers to extract
-CORESET_RATIO = 0.10               # fraction of patch features kept in memory bank
+CORESET_RATIO = 0.25               # fraction of patch features kept in memory bank
 NUM_NEIGHBORS = 9                  # k in k-NN scoring
 
 # Device
