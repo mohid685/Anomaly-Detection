@@ -3,7 +3,7 @@ import json
 import numpy as np
 import cv2
 from torch.utils.data import DataLoader
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, roc_curve
 
 from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, THRESHOLD_PATH, CENTER_CROP
 from mvtec_dataset import MVTecTestDataset
@@ -57,13 +57,25 @@ def main():
     for defect_type, scores in per_type_results.items():
         print(f"  {defect_type}: mean score {np.mean(scores):.4f}")
 
-    # Save a simple threshold (max score among good test images) for deployment/demo use
-    good_scores = [s for s, l in zip(image_scores, image_labels) if l == 0]
-    threshold = float(np.max(good_scores)) if good_scores else float(np.percentile(image_scores, 95))
+    # Select threshold using Youden's J statistic (maximizes TPR - FPR) from the
+    # ROC curve, instead of max(good_scores), which is fragile and driven by a
+    # single outlier sample in the good class.
+    fpr, tpr, thresholds = roc_curve(image_labels, image_scores)
+    j_scores = tpr - fpr
+    best_idx = np.argmax(j_scores)
+    threshold = float(thresholds[best_idx])
+
+    print(f"\nOptimal threshold (Youden's J): {threshold:.4f}")
+    print(f"  At this threshold -> TPR: {tpr[best_idx]:.4f}, FPR: {fpr[best_idx]:.4f}")
+
     with open(THRESHOLD_PATH, "w") as f:
-        json.dump({"threshold": threshold,
-                    "image_auroc": image_auroc,
-                    "pixel_auroc": pixel_auroc}, f, indent=2)
+        json.dump({
+            "threshold": threshold,
+            "image_auroc": image_auroc,
+            "pixel_auroc": pixel_auroc,
+            "tpr_at_threshold": float(tpr[best_idx]),
+            "fpr_at_threshold": float(fpr[best_idx]),
+        }, f, indent=2)
 
     print(f"Threshold saved to {THRESHOLD_PATH}: {threshold:.4f}")
 

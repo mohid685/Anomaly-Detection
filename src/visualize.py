@@ -6,10 +6,6 @@ from config import CENTER_CROP
 
 
 def overlay_heatmap(image_tensor, anomaly_map, save_path=None):
-    """
-    image_tensor: (3, H, W) normalized tensor
-    anomaly_map: (h, w) raw patch-score map (will be upsampled)
-    """
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     img = image_tensor.permute(1, 2, 0).cpu().numpy()
@@ -26,4 +22,4 @@ def overlay_heatmap(image_tensor, anomaly_map, save_path=None):
 
     if save_path:
         plt.savefig(save_path, bbox_inches="tight")
-    plt.show()
+    plt.close(fig)
