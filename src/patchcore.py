@@ -106,7 +106,7 @@ class PatchCore:
         self.knn = NearestNeighbors(n_neighbors=NUM_NEIGHBORS, algorithm="auto", n_jobs=-1)
         self.knn.fit(self.memory_bank)
 
-    def score(self, x):
+    def score(self, x, top_k=5):
         embedding = self.extractor(x)
         patches, (b, h, w) = embedding_to_patches(embedding)
 
@@ -114,7 +114,11 @@ class PatchCore:
         patch_scores = distances.mean(axis=1)
 
         anomaly_map = patch_scores.reshape(h, w)
-        image_score = anomaly_map.max()
+
+        flat_scores = anomaly_map.flatten()
+        top_k = min(top_k, flat_scores.size)
+        top_k_scores = np.sort(flat_scores)[-top_k:]
+        image_score = top_k_scores.mean()
 
         return image_score, anomaly_map
 
