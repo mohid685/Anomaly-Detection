@@ -8,9 +8,9 @@ import json
 from torch.utils.data import DataLoader
 
 from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, ARTIFACTS_DIR, THRESHOLD_PATH
-from common.mvtec_dataset import MVTecTestDataset
-from common.patchcore import PatchCore
-from common.visualize import overlay_heatmap
+from mvtec_dataset import MVTecTestDataset
+from patchcore import PatchCore
+from visualize import overlay_heatmap
 
 
 def main():

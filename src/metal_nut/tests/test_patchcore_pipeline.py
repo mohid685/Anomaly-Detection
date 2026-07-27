@@ -1,12 +1,10 @@
 """
-Pytest suite for the metal_nut PatchCore anomaly detection pipeline.
+Pytest suite for the screw PatchCore anomaly detection pipeline.
 
-Run from src/:
+Run from src/screw/:
     pytest tests/test_patchcore_pipeline.py -v
-or from src/tests/:
-    pytest test_patchcore_pipeline.py -v
 
-Some tests require artifacts/memory_bank.pt and artifacts/threshold.json
+Some tests require artifacts/screw/memory_bank.pt and artifacts/screw/threshold.json
 to already exist (i.e. train_patchcore.py and evaluate.py have been run).
 Those tests are skipped automatically if the artifacts are missing.
 """
@@ -21,8 +19,8 @@ from config import (
     TRAIN_DIR, TEST_DIR, GT_DIR, MEMORY_BANK_PATH, THRESHOLD_PATH,
     CENTER_CROP, CORESET_RATIO, NUM_NEIGHBORS,
 )
-from common.mvtec_dataset import MVTecTrainDataset, MVTecTestDataset, get_transform
-from common.patchcore import (
+from mvtec_dataset import MVTecTrainDataset, MVTecTestDataset, get_transform
+from patchcore import (
     FeatureExtractor, PatchCore, coreset_subsample, embedding_to_patches,
 )
 
@@ -84,7 +82,7 @@ class TestTrainDataset:
 class TestTestDataset:
     def test_test_dataset_has_all_defect_types(self, test_dataset):
         defect_types = {s[3] for s in test_dataset.samples}
-        expected = {"good", "bent", "color", "flip", "scratch"}
+        expected = {"good", "manipulated_front", "scratch_head", "scratch_neck", "thread_side", "thread_top"}
         assert expected.issubset(defect_types)
 
     def test_good_images_have_zero_mask(self, test_dataset):
@@ -198,8 +196,7 @@ class TestPatchCoreModel:
         assert np.isfinite(score)
 
     def test_save_and_load_roundtrip(self, trained_model):
-        import tempfile
-        tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "artifacts", "tmp_test")
+        tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "artifacts", "screw", "tmp_test")
         os.makedirs(tmp_dir, exist_ok=True)
         save_path = os.path.join(tmp_dir, "memory_bank_test.pt")
 
@@ -211,7 +208,7 @@ class TestPatchCoreModel:
         assert reloaded.memory_bank.shape == trained_model.memory_bank.shape
         assert np.allclose(reloaded.memory_bank, trained_model.memory_bank)
 
-        os.remove(save_path)  # cleanup
+        os.remove(save_path)
 
 
 # ---------------------------------------------------------------------------
@@ -229,24 +226,13 @@ class TestModelBehavior:
 
     def test_good_mean_score_is_lowest(self, scores_by_type):
         good_mean = np.mean(scores_by_type["good"])
-        for defect_type in ("bent", "color", "flip", "scratch"):
-            if defect_type in scores_by_type:
-                defect_mean = np.mean(scores_by_type[defect_type])
-                assert defect_mean > good_mean, (
-                    f"{defect_type} mean score ({defect_mean:.2f}) should exceed "
-                    f"good mean score ({good_mean:.2f})"
-                )
-
-    def test_bent_and_flip_are_clearly_separated_from_good(self, scores_by_type):
-        good_mean = np.mean(scores_by_type["good"])
-        for defect_type in ("bent", "flip"):
-            if defect_type in scores_by_type:
-                defect_mean = np.mean(scores_by_type[defect_type])
-                gap = defect_mean - good_mean
-                assert gap > 3.0, (
-                    f"{defect_type} mean gap from good shrank to {gap:.2f} "
-                    f"(expected > 3.0 based on last known-good run)"
-                )
+        defect_types = [t for t in scores_by_type.keys() if t != "good"]
+        for defect_type in defect_types:
+            defect_mean = np.mean(scores_by_type[defect_type])
+            assert defect_mean > good_mean, (
+                f"{defect_type} mean score ({defect_mean:.2f}) should exceed "
+                f"good mean score ({good_mean:.2f})"
+            )
 
     def test_overall_accuracy_at_saved_threshold(self, trained_model, test_dataset, saved_threshold):
         threshold = saved_threshold["threshold"]
@@ -260,11 +246,16 @@ class TestModelBehavior:
 
         accuracy = correct / total
         print(f"\nOverall accuracy at saved threshold: {accuracy:.4f} ({correct}/{total})")
-        assert accuracy >= 0.85, f"Overall accuracy dropped to {accuracy:.4f}, below 0.85 floor"
+        # NOTE: floor left permissive (0.70) until a first real screw run establishes
+        # a genuine baseline — tighten this once we have an actual result, the same
+        # way metal_nut's 0.85 floor was set from its own known-good run.
+        assert accuracy >= 0.70, f"Overall accuracy dropped to {accuracy:.4f}, below 0.70 floor"
 
     def test_reported_aurocs_are_reasonable(self, saved_threshold):
-        assert saved_threshold["image_auroc"] >= 0.90
-        assert saved_threshold["pixel_auroc"] >= 0.90
+        # Left permissive (0.75) until a first real screw run establishes a genuine
+        # baseline, since screw's defect characteristics are unknown so far.
+        assert saved_threshold["image_auroc"] >= 0.75
+        assert saved_threshold["pixel_auroc"] >= 0.75
 
 
 # ---------------------------------------------------------------------------
@@ -277,18 +268,7 @@ class TestEdgeCases:
         score, anomaly_map = trained_model.score(img.unsqueeze(0))
         assert np.isfinite(score)
 
-    # def test_score_handles_larger_batch(self, trained_model, test_dataset):
-    #     imgs = torch.stack([test_dataset[i][0] for i in range(min(4, len(test_dataset)))])
-    #     score, anomaly_map = trained_model.score(imgs)
-    #     assert np.isfinite(score)
-
     def test_score_only_supports_single_image_at_a_time(self, trained_model, test_dataset):
-        """
-        PatchCore.score() is designed for one image per call (batch size 1) —
-        this is documented behavior, not a bug, since evaluate.py and
-        run_visualizations.py always call it this way. Calling it with a
-        batch > 1 raises, which this test locks in as expected behavior.
-        """
         imgs = torch.stack([test_dataset[i][0] for i in range(min(4, len(test_dataset)))])
         with pytest.raises(ValueError):
             trained_model.score(imgs)

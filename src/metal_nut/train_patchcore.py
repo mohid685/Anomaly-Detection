@@ -1,14 +1,13 @@
 import os
 import sys
 
-# Make the shared 'common' package importable regardless of where this script is run from
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
 
 from torch.utils.data import DataLoader
 
 from config import TRAIN_DIR, ARTIFACTS_DIR, MEMORY_BANK_PATH
-from common.mvtec_dataset import MVTecTrainDataset
-from common.patchcore import PatchCore
+from mvtec_dataset import MVTecTrainDataset
+from patchcore import PatchCore
 
 
 def main():

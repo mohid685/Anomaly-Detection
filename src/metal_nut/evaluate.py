@@ -10,8 +10,8 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import roc_auc_score, roc_curve
 
 from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, THRESHOLD_PATH, CENTER_CROP
-from common.mvtec_dataset import MVTecTestDataset
-from common.patchcore import PatchCore
+from mvtec_dataset import MVTecTestDataset
+from patchcore import PatchCore
 
 
 def upsample_map(anomaly_map, size):
