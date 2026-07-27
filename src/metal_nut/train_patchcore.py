@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from torch.utils.data import DataLoader
 
 from config import TRAIN_DIR, ARTIFACTS_DIR, MEMORY_BANK_PATH
-from mvtec_dataset import MVTecTrainDataset
-from patchcore import PatchCore
+from common.mvtec_dataset import MVTecTrainDataset
+from common.patchcore import PatchCore
 
 
 def main():

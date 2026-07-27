@@ -44,7 +44,7 @@ def main():
         sys.modules.pop(mod, None)
 
     print("[1/6] Importing config...")
-    import config
+    import src.metal_nut.config as config
     print(f"      DATASET_ROOT = {config.DATASET_ROOT}")
     print(f"      ARTIFACTS_DIR = {config.ARTIFACTS_DIR}")
     print(f"      DEVICE = {config.DEVICE}")
@@ -57,8 +57,8 @@ def main():
             raise SystemExit(f"Required path missing: {path}")
 
     print("[3/6] Importing mvtec_dataset and patchcore...")
-    from mvtec_dataset import MVTecTrainDataset, MVTecTestDataset
-    from patchcore import PatchCore
+    from common.mvtec_dataset import MVTecTrainDataset, MVTecTestDataset
+    from common.patchcore import PatchCore
     print("      OK")
 
     print("[4/6] Loading a small slice of train/test data...")

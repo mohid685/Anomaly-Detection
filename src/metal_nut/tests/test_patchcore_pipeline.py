@@ -21,8 +21,8 @@ from config import (
     TRAIN_DIR, TEST_DIR, GT_DIR, MEMORY_BANK_PATH, THRESHOLD_PATH,
     CENTER_CROP, CORESET_RATIO, NUM_NEIGHBORS,
 )
-from mvtec_dataset import MVTecTrainDataset, MVTecTestDataset, get_transform
-from patchcore import (
+from common.mvtec_dataset import MVTecTrainDataset, MVTecTestDataset, get_transform
+from common.patchcore import (
     FeatureExtractor, PatchCore, coreset_subsample, embedding_to_patches,
 )
 
