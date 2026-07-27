@@ -1,13 +1,16 @@
 import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
+
 import csv
+import json
 from torch.utils.data import DataLoader
 
 from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, ARTIFACTS_DIR, THRESHOLD_PATH
 from mvtec_dataset import MVTecTestDataset
 from patchcore import PatchCore
 from visualize import overlay_heatmap
-
-import json
 
 
 def main():
@@ -16,7 +19,6 @@ def main():
     model = PatchCore()
     model.load(MEMORY_BANK_PATH)
 
-    # Load the saved threshold so we can flag misclassifications directly
     threshold = None
     if os.path.exists(THRESHOLD_PATH):
         with open(THRESHOLD_PATH, "r") as f:
@@ -48,7 +50,7 @@ def main():
         rows.append({
             "defect_type": defect_type,
             "filename": fname,
-            "true_label": label,        # 0 = good, 1 = defective
+            "true_label": label,
             "image_score": round(float(image_score), 4),
             "threshold": round(threshold, 4) if threshold is not None else "",
             "predicted_defective": predicted_defective,
@@ -59,13 +61,11 @@ def main():
         print(f"[{defect_type}] {fname}: score={image_score:.4f} "
               f"{'CORRECT' if correct else ('WRONG' if correct is not None else '')}")
 
-    # Write CSV summary
     with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
 
-    # Print a quick misclassification summary per defect type
     print("\n=== Misclassification summary ===")
     by_type = {}
     for r in rows:

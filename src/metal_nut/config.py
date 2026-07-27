@@ -1,14 +1,14 @@
 import os
 import torch
 
-# Project root = one level above this file's directory (src/..)
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Project root = two levels above this file (src/metal_nut/.. -> src -> ..)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 DATASET_ROOT = os.path.join(PROJECT_ROOT, "dataset", "metal_nut")
 TRAIN_DIR = os.path.join(DATASET_ROOT, "train", "good")
 TEST_DIR = os.path.join(DATASET_ROOT, "test")
 GT_DIR = os.path.join(DATASET_ROOT, "ground_truth")
-ARTIFACTS_DIR = os.path.join(PROJECT_ROOT, "artifacts")
+ARTIFACTS_DIR = os.path.join(PROJECT_ROOT, "artifacts", "metal_nut")
 
 # Image settings
 IMAGE_SIZE = 256      # resize dimension

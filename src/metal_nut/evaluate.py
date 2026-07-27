@@ -1,4 +1,8 @@
 import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
+
 import json
 import numpy as np
 import cv2
@@ -57,9 +61,6 @@ def main():
     for defect_type, scores in per_type_results.items():
         print(f"  {defect_type}: mean score {np.mean(scores):.4f}")
 
-    # Select threshold using Youden's J statistic (maximizes TPR - FPR) from the
-    # ROC curve, instead of max(good_scores), which is fragile and driven by a
-    # single outlier sample in the good class.
     fpr, tpr, thresholds = roc_curve(image_labels, image_scores)
     j_scores = tpr - fpr
     best_idx = np.argmax(j_scores)
