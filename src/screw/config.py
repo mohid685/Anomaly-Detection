@@ -16,10 +16,14 @@ CENTER_CROP = 224     # crop fed to backbone
 
 # PatchCore settings
 BACKBONE = "wide_resnet50_2"
-LAYERS = ["layer2", "layer3"]     # reverted — layer1 hurt image-level AUROC (0.7452 -> 0.7006)
-CORESET_RATIO = 0.25               # fraction of patch features kept in memory bank
-NUM_NEIGHBORS = 9                  # k in k-NN scoring
-TOP_K = 1                          # thread defects are small — averaging 5 patches dilutes the signal
+LAYERS = ["layer2", "layer3"]      # matches the currently saved memory_bank.pt (1536-dim features)
+CORESET_RATIO = 0.25
+NUM_NEIGHBORS = 9
+
+# Scoring strategy (screw-specific — metal_nut does not use these)
+TOP_K = 1
+SUBTRACT_BASELINE = False
+USE_POSITION_NORM = True   # per-spatial-location calibration (see calibrate.py)
 
 # Device
 DEVICE = "cuda" if (torch.cuda.is_available() and os.environ.get("FORCE_CPU") != "1") else "cpu"

@@ -7,7 +7,10 @@ import csv
 import json
 from torch.utils.data import DataLoader
 
-from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, ARTIFACTS_DIR, THRESHOLD_PATH, TOP_K
+from config import (
+    TEST_DIR, GT_DIR, MEMORY_BANK_PATH, ARTIFACTS_DIR, THRESHOLD_PATH,
+    TOP_K, SUBTRACT_BASELINE, USE_POSITION_NORM,
+)
 from mvtec_dataset import MVTecTestDataset
 from patchcore import PatchCore
 from visualize import overlay_heatmap
@@ -36,7 +39,9 @@ def main():
         type_dir = os.path.join(output_dir, defect_type)
         os.makedirs(type_dir, exist_ok=True)
 
-        image_score, anomaly_map = model.score(img_t.unsqueeze(0), top_k=TOP_K)
+        image_score, anomaly_map = model.score(
+            img_t.unsqueeze(0), top_k=TOP_K, subtract_baseline=SUBTRACT_BASELINE, use_position_norm=USE_POSITION_NORM
+        )
 
         save_path = os.path.join(type_dir, f"{fname}.png")
         overlay_heatmap(img_t, anomaly_map, save_path=save_path)

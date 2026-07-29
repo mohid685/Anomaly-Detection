@@ -88,6 +88,8 @@ class PatchCore:
         self.memory_bank = None
         self.knn = None
         self.feature_map_hw = None
+        self.pos_mean = None
+        self.pos_std = None
 
     def fit(self, train_loader):
         all_patches = []
@@ -106,31 +108,63 @@ class PatchCore:
         self.knn = NearestNeighbors(n_neighbors=NUM_NEIGHBORS, algorithm="auto", n_jobs=-1)
         self.knn.fit(self.memory_bank)
 
-    def score(self, x, top_k=5):
+    def calibrate(self, train_loader):
+        """
+        Computes per-spatial-location mean/std of raw anomaly scores over the
+        normal training set. Some positions (e.g. a screw's tip or thread edge)
+        score elevated in every image due to viewpoint/edge effects, not actual
+        defects. This lets score() judge each position relative to its own
+        expected normal range, instead of one flat threshold for the whole image.
+        Only used when a pipeline explicitly opts in via use_position_norm.
+        """
+        maps = []
+        for batch in tqdm(train_loader, desc="Calibrating position stats"):
+            for i in range(batch.shape[0]):
+                _, anomaly_map = self.score(batch[i:i + 1], use_position_norm=False)
+                maps.append(anomaly_map)
+        maps = np.stack(maps, axis=0)
+        self.pos_mean = maps.mean(axis=0)
+        self.pos_std = maps.std(axis=0) + 1e-6
+        print(f"Calibration complete over {len(maps)} training images.")
+
+    def score(self, x, top_k=5, subtract_baseline=False, use_position_norm=False):
         embedding = self.extractor(x)
         patches, (b, h, w) = embedding_to_patches(embedding)
 
         distances, _ = self.knn.kneighbors(patches)
         patch_scores = distances.mean(axis=1)
-
         anomaly_map = patch_scores.reshape(h, w)
 
-        flat_scores = anomaly_map.flatten()
-        top_k = min(top_k, flat_scores.size)
-        top_k_scores = np.sort(flat_scores)[-top_k:]
+        scoring_map = anomaly_map
+        if use_position_norm and self.pos_mean is not None:
+            scoring_map = (anomaly_map - self.pos_mean) / self.pos_std
+
+        flat_scores = scoring_map.flatten()
+        k = min(top_k, flat_scores.size)
+        top_k_scores = np.sort(flat_scores)[-k:]
         image_score = top_k_scores.mean()
 
+        if subtract_baseline:
+            image_score = image_score - np.median(flat_scores)
+
+        # anomaly_map returned is always the RAW (non-normalized) map, so pixel-level
+        # AUROC and heatmap visualizations are unaffected by position normalization —
+        # only the single scalar image_score is affected.
         return image_score, anomaly_map
 
     def save(self, path):
         torch.save({
             "memory_bank": self.memory_bank,
             "feature_map_hw": self.feature_map_hw,
+            "pos_mean": self.pos_mean,
+            "pos_std": self.pos_std,
         }, path)
 
     def load(self, path):
         data = torch.load(path, weights_only=False)
         self.memory_bank = data["memory_bank"]
         self.feature_map_hw = data["feature_map_hw"]
+        self.pos_mean = data.get("pos_mean")
+        self.pos_std = data.get("pos_std")
         self.knn = NearestNeighbors(n_neighbors=NUM_NEIGHBORS, algorithm="auto", n_jobs=-1)
         self.knn.fit(self.memory_bank)
