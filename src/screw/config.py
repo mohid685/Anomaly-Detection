@@ -16,9 +16,9 @@ CENTER_CROP = 224     # crop fed to backbone
 
 # PatchCore settings
 BACKBONE = "wide_resnet50_2"
-LAYERS = ["layer2", "layer3"]     # feature layers to extract
-CORESET_RATIO = 0.25               # starting point — same as metal_nut's final config
-NUM_NEIGHBORS = 9                  # k in k-NN scoring
+LAYERS = ["layer1", "layer2", "layer3"]     # feature layers to extract
+CORESET_RATIO = 0.25                        # starting point — same as metal_nut's final config
+NUM_NEIGHBORS = 9                           # k in k-NN scoring
 
 # Device
 DEVICE = "cuda" if (torch.cuda.is_available() and os.environ.get("FORCE_CPU") != "1") else "cpu"
