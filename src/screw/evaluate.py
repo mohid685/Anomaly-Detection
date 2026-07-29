@@ -9,7 +9,7 @@ import cv2
 from torch.utils.data import DataLoader
 from sklearn.metrics import roc_auc_score, roc_curve
 
-from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, THRESHOLD_PATH, CENTER_CROP
+from config import TEST_DIR, GT_DIR, MEMORY_BANK_PATH, THRESHOLD_PATH, CENTER_CROP, TOP_K
 from mvtec_dataset import MVTecTestDataset
 from patchcore import PatchCore
 
@@ -33,7 +33,7 @@ def main():
         label = int(label.item())
         defect_type = defect_type[0]
 
-        image_score, anomaly_map = model.score(img)
+        image_score, anomaly_map = model.score(img, top_k=TOP_K)
         image_scores.append(image_score)
         image_labels.append(label)
 
