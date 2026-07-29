@@ -21,7 +21,7 @@ CORESET_RATIO = 0.25
 NUM_NEIGHBORS = 9
 
 # Scoring strategy (screw-specific — metal_nut does not use these)
-TOP_K = 1
+TOP_K = 20
 SUBTRACT_BASELINE = False
 USE_POSITION_NORM = True   # per-spatial-location calibration (see calibrate.py)
 
