@@ -7,3 +7,5 @@ artifacts/memory_bank.pt
 
 dataset/metal_nut/
 dataset/screw/
+dataset/cable/
+dataset/transistor/
