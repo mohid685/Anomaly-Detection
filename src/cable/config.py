@@ -20,7 +20,7 @@ NUM_NEIGHBORS = 9
 # Scoring strategy — position norm ON by default here, since cable is
 # photographed in a fixed pose (unlike screw's free rotation), so per-location
 # calibration should be reliable from the first run rather than a later fix.
-TOP_K = 5
+TOP_K = 2
 SUBTRACT_BASELINE = False
 USE_POSITION_NORM = True
 
