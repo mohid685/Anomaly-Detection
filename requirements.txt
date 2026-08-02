@@ -8,3 +8,13 @@ matplotlib
 Pillow
 tqdm
 pytest
+fastapi
+uvicorn[standard]
+python-multipart
+torch
+torchvision
+scikit-learn
+numpy
+opencv-python-headless
+Pillow
+tqdm
