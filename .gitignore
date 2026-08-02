@@ -1,11 +1,41 @@
 # Datasets
-artifacts/metal_nut.tar.xz
-artifacts/screw.tar.xz
-artifacts/
-# or, if you only want to ignore the model:
-artifacts/memory_bank.pt
-
 dataset/metal_nut/
 dataset/screw/
 dataset/cable/
 dataset/transistor/
+
+# Trained models / artifacts
+artifacts/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Frontend (Next.js / Node)
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env.local
+frontend/.env*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.vercel/
+frontend/next-env.d.ts
+frontend/tsconfig.tsbuildinfo
+
+# Backend
+backend/__pycache__/
+backend/*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
