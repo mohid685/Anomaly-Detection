@@ -13,12 +13,12 @@ Unsupervised visual anomaly detection system for industrial components, built on
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/metal_nut.png" width="75%"/><br/><sub>Transistor</sub></td>
-    <td align="center"><img src="docs/screenshots/screw.png" width="75%"/><br/><sub>Cable</sub></td>
+    <td align="center"><img src="docs/screenshots/metal_nut.png" width="100%"/><br/><sub>Transistor</sub></td>
+    <td align="center"><img src="docs/screenshots/screw.png" width="100%"/><br/><sub>Cable</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/cable.png" width="75%"/><br/><sub>Screw</sub></td>
-    <td align="center"><img src="docs/screenshots/transistor.png" width="75%"/><br/><sub>Metal Nut</sub></td>
+    <td align="center"><img src="docs/screenshots/cable.png" width="100%"/><br/><sub>Screw</sub></td>
+    <td align="center"><img src="docs/screenshots/transistor.png" width="100%"/><br/><sub>Metal Nut</sub></td>
   </tr>
 </table>
 
